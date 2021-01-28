@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cargo build --release -Zbuild-std=core -Zbuild-std-features=panic_immediate_abort
+cargo build --release
 ELF=target/thumbv6m-none-eabi/release/flash-algo
 
 llvm-objdump --disassemble $ELF > target/disassembly.s
