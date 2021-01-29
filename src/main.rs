@@ -3,53 +3,13 @@
 #![feature(asm)]
 
 mod algo;
+mod bootrom;
 
 use core::mem;
 use core::mem::MaybeUninit;
 
 use self::algo::*;
-
-fn find_func<T>(tag: [u8; 2]) -> T {
-    let tag = u16::from_le_bytes(tag);
-
-    unsafe {
-        let mut entry = *(0x00000014 as *const u16) as *const u16;
-        loop {
-            let entry_tag = entry.read();
-            if entry_tag == 0 {
-                panic!("Func not found");
-            }
-            entry = entry.add(1);
-            let entry_addr = entry.read();
-            entry = entry.add(1);
-            if entry_tag == tag {
-                return mem::transmute_copy(&(entry_addr as u32));
-            }
-        }
-    }
-}
-
-struct ROMFuncs {
-    connect_internal_flash: extern "C" fn(),
-    flash_exit_xip: extern "C" fn(),
-    flash_range_erase: extern "C" fn(addr: u32, count: u32, block_size: u32, block_cmd: u8),
-    flash_range_program: extern "C" fn(addr: u32, data: *const u8, count: u32),
-    flash_flush_cache: extern "C" fn(),
-    flash_enter_cmd_xip: extern "C" fn(),
-}
-
-impl ROMFuncs {
-    fn load() -> Self {
-        ROMFuncs {
-            connect_internal_flash: find_func(*b"IF"),
-            flash_exit_xip: find_func(*b"EX"),
-            flash_range_erase: find_func(*b"RE"),
-            flash_range_program: find_func(*b"RP"),
-            flash_flush_cache: find_func(*b"FC"),
-            flash_enter_cmd_xip: find_func(*b"CX"),
-        }
-    }
-}
+use self::bootrom::ROMFuncs;
 
 struct RP2040Algo {
     funcs: ROMFuncs,
