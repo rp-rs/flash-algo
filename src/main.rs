@@ -5,7 +5,6 @@
 mod algo;
 mod bootrom;
 
-use core::mem;
 use core::mem::MaybeUninit;
 
 use self::algo::*;

@@ -1,23 +1,28 @@
 use core::mem;
 
-fn find_func(tag: [u8; 2]) -> u32 {
-    let tag = u16::from_le_bytes(tag);
+// A bootrom function table code.
+pub type RomFnTableCode = [u8; 2];
 
-    unsafe {
-        let mut entry = *(0x00000014 as *const u16) as *const u16;
-        loop {
-            let entry_tag = entry.read();
-            if entry_tag == 0 {
-                panic!("Func not found");
-            }
-            entry = entry.add(1);
-            let entry_addr = entry.read();
-            entry = entry.add(1);
-            if entry_tag == tag {
-                return entry_addr as u32;
-            }
-        }
-    }
+const ROM_TABLE_LOOKUP_PTR: *const u16 = 0x18 as _;
+const OPS_TABLE_PTR: *const u16 = 0x14 as _;
+
+/// This function searches for (table)
+type RomTableLookupFn<T> = unsafe extern "C" fn(*const u16, u32) -> T;
+
+/// Given a rom_address pointer, convert a 16 bit pointer stored
+/// at the given rom address into a 32 bit pointer
+#[inline]
+unsafe fn get_ptr_from_rom(rom_address: *const u16) -> *const u16 {
+    *rom_address as *const u16
+}
+
+unsafe fn find_func<T>(
+    rom_table_lookup: *const u16,
+    func_table: *const u16,
+    tag: RomFnTableCode,
+) -> T {
+    let rom_table_lookup: RomTableLookupFn<T> = mem::transmute(rom_table_lookup);
+    rom_table_lookup(func_table, u16::from_le_bytes(tag) as u32)
 }
 
 pub struct ROMFuncs {
@@ -32,13 +37,15 @@ pub struct ROMFuncs {
 impl ROMFuncs {
     pub fn load() -> Self {
         unsafe {
+            let rom_table_lookup = get_ptr_from_rom(ROM_TABLE_LOOKUP_PTR);
+            let func_table = get_ptr_from_rom(OPS_TABLE_PTR);
             ROMFuncs {
-                connect_internal_flash: mem::transmute(find_func(*b"IF")),
-                flash_exit_xip: mem::transmute(find_func(*b"EX")),
-                flash_range_erase: mem::transmute(find_func(*b"RE")),
-                flash_range_program: mem::transmute(find_func(*b"RP")),
-                flash_flush_cache: mem::transmute(find_func(*b"FC")),
-                flash_enter_cmd_xip: mem::transmute(find_func(*b"CX")),
+                connect_internal_flash: find_func(rom_table_lookup, func_table, *b"IF"),
+                flash_exit_xip: find_func(rom_table_lookup, func_table, *b"EX"),
+                flash_range_erase: find_func(rom_table_lookup, func_table, *b"RE"),
+                flash_range_program: find_func(rom_table_lookup, func_table, *b"RP"),
+                flash_flush_cache: find_func(rom_table_lookup, func_table, *b"FC"),
+                flash_enter_cmd_xip: find_func(rom_table_lookup, func_table, *b"CX"),
             }
         }
     }
