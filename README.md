@@ -3,6 +3,12 @@
 This is a flash algorithm for the RP2040 chip, used in the Raspberry Pi Pico board. 
 It implements the CMSIS-Pack ABI, so it's compatible with any tools that use it, including probe-rs.
 
+## Dependencies
+
+Run the following requirements:
+```bash
+cargo install cargo-binutils && rustup component add llvm-tools-preview rust-src
+```
 ## Building
 
 Building requires nightly Rust.
