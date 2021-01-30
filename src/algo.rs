@@ -39,9 +39,9 @@ macro_rules! algo {
 
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn _algo_init(addr: u32, clock: u32, function: u32) -> u32 {
+        pub unsafe extern "C" fn Init(addr: u32, clock: u32, function: u32) -> u32 {
             if _IS_INIT {
-                _algo_uninit();
+                UnInit();
             }
             _IS_INIT = true;
             match <$type as FlashAlgo>::new(addr, clock, function) {
@@ -55,7 +55,7 @@ macro_rules! algo {
         }
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn _algo_uninit() -> u32 {
+        pub unsafe extern "C" fn UnInit() -> u32 {
             if !_IS_INIT {
                 return 1;
             }
@@ -65,7 +65,7 @@ macro_rules! algo {
         }
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn _algo_erase_all() -> u32 {
+        pub unsafe extern "C" fn EraseChip() -> u32 {
             if !_IS_INIT {
                 return 1;
             }
@@ -77,7 +77,7 @@ macro_rules! algo {
         }
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn _algo_erase_sector(addr: u32) -> u32 {
+        pub unsafe extern "C" fn EraseSector(addr: u32) -> u32 {
             if !_IS_INIT {
                 return 1;
             }
@@ -89,7 +89,7 @@ macro_rules! algo {
         }
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn _algo_program_page(addr: u32, size: u32, data: *const u8) -> u32 {
+        pub unsafe extern "C" fn ProgramPage(addr: u32, size: u32, data: *const u8) -> u32 {
             if !_IS_INIT {
                 return 1;
             }
