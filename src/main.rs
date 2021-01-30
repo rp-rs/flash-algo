@@ -9,7 +9,7 @@ use core::mem::MaybeUninit;
 
 use self::algo::*;
 
-fn find_func(tag: [u8; 2]) -> u32 {
+fn find_func<T>(tag: [u8; 2]) -> T {
     let tag = u16::from_le_bytes(tag);
 
     unsafe {
@@ -23,7 +23,7 @@ fn find_func(tag: [u8; 2]) -> u32 {
             let entry_addr = entry.read();
             entry = entry.add(1);
             if entry_tag == tag {
-                return entry_addr as u32;
+                return mem::transmute_copy(&(entry_addr as u32));
             }
         }
     }
@@ -42,12 +42,12 @@ impl ROMFuncs {
     fn load() -> Self {
         unsafe {
             ROMFuncs {
-                connect_internal_flash: mem::transmute(find_func(*b"IF")),
-                flash_exit_xip: mem::transmute(find_func(*b"EX")),
-                flash_range_erase: mem::transmute(find_func(*b"RE")),
-                flash_range_program: mem::transmute(find_func(*b"RP")),
-                flash_flush_cache: mem::transmute(find_func(*b"FC")),
-                flash_enter_cmd_xip: mem::transmute(find_func(*b"CX")),
+                connect_internal_flash: find_func(*b"IF"),
+                flash_exit_xip: find_func(*b"EX"),
+                flash_range_erase: find_func(*b"RE"),
+                flash_range_program: find_func(*b"RP"),
+                flash_flush_cache: find_func(*b"FC"),
+                flash_enter_cmd_xip: find_func(*b"CX"),
             }
         }
     }
