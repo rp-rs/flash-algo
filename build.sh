@@ -14,7 +14,7 @@ function bin {
 }
 
 function sym {
-    echo $((0x$(llvm-nm $ELF | grep $1 | cut -d ' ' -f 1) + 1))
+    echo $((0x$(llvm-nm $ELF | grep -w $1 | cut -d ' ' -f 1) + 1))
 }
 
 cat <<EOF
