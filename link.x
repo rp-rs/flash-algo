@@ -1,7 +1,16 @@
 SECTIONS {
     . = 0x0;
 
-    .text : {
+    /*
+     * The PrgCode output section name comes from the CMSIS-Pack flash algo
+     * templates and armlink. It is used here because several tools that work
+     * with these flash algos expect this section name.
+     *
+     * All input sections are combined into PrgCode because RWPI using R9 is not
+     * currently stable in Rust, thus having separate PrgData sections that the
+     * debug host might locate at a different offset from PrgCode is not safe.
+     */
+    PrgCode : {
         KEEP(*(.entry))
         KEEP(*(.entry.*))
 
