@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+# macOS base64 doesn't take -w argument and defaults to a single line.
+if [[ $(uname) = "Darwin" ]]; then
+    BASE64_FLAGS=""
+else
+    BASE64_FLAGS="-w0"
+fi
+
 cargo build --release
 ELF=target/thumbv6m-none-eabi/release/flash-algo
 
@@ -10,7 +17,7 @@ rust-objdump -x $ELF > target/dump.txt
 rust-nm $ELF -n > target/nm.txt
 
 function bin {
-    rust-objcopy $ELF -O binary - | base64 -w0
+    rust-objcopy $ELF -O binary - | base64 $BASE64_FLAGS
 }
 
 function sym {
