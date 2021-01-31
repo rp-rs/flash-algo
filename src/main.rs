@@ -80,7 +80,7 @@ impl FlashAlgo for RP2040Algo {
     }
 
     fn erase_sector(&mut self, addr: u32) -> Result<(), ErrorCode> {
-        (self.funcs.flash_range_erase)(addr - FLASH_BASE, 4096, BLOCK_SIZE, BLOCK_ERASE_CMD);
+        (self.funcs.flash_range_erase)(addr - FLASH_BASE, SECTOR_SIZE, BLOCK_SIZE, BLOCK_ERASE_CMD);
         Ok(())
     }
 
