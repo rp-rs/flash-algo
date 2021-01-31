@@ -5,16 +5,16 @@ set -euo pipefail
 cargo build --release
 ELF=target/thumbv6m-none-eabi/release/flash-algo
 
-llvm-objdump --disassemble $ELF > target/disassembly.s
-llvm-objdump -x $ELF > target/dump.txt
-llvm-nm $ELF -n > target/nm.txt
+rust-objdump --disassemble $ELF > target/disassembly.s
+rust-objdump -x $ELF > target/dump.txt
+rust-nm $ELF -n > target/nm.txt
 
 function bin {
-    llvm-objcopy $ELF -O binary - | base64 -w0
+    rust-objcopy $ELF -O binary - | base64 -w0
 }
 
 function sym {
-    echo $((0x$(llvm-nm $ELF | grep -w $1 | cut -d ' ' -f 1) + 1))
+    echo $((0x$(rust-nm $ELF | grep -w $1 | cut -d ' ' -f 1) + 1))
 }
 
 cat <<EOF
