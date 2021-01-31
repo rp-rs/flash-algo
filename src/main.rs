@@ -40,15 +40,13 @@ struct ROMFuncs {
 
 impl ROMFuncs {
     fn load() -> Self {
-        unsafe {
-            ROMFuncs {
-                connect_internal_flash: find_func(*b"IF"),
-                flash_exit_xip: find_func(*b"EX"),
-                flash_range_erase: find_func(*b"RE"),
-                flash_range_program: find_func(*b"RP"),
-                flash_flush_cache: find_func(*b"FC"),
-                flash_enter_cmd_xip: find_func(*b"CX"),
-            }
+        ROMFuncs {
+            connect_internal_flash: find_func(*b"IF"),
+            flash_exit_xip: find_func(*b"EX"),
+            flash_range_erase: find_func(*b"RE"),
+            flash_range_program: find_func(*b"RP"),
+            flash_flush_cache: find_func(*b"FC"),
+            flash_enter_cmd_xip: find_func(*b"CX"),
         }
     }
 }
