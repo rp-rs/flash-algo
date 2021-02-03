@@ -28,7 +28,7 @@ pub trait FlashAlgo: Sized + 'static {
     fn erase_sector(&mut self, addr: u32) -> Result<(), ErrorCode>;
 
     /// Program bytes. May only be called after init() with FUNCTION_PROGRAM
-    fn program_page(&mut self, addr: u32, size: u32, data: *const u8) -> Result<(), ErrorCode>;
+    fn program_page(&mut self, addr: u32, size: usize, data: *const u8) -> Result<(), ErrorCode>;
 }
 
 #[macro_export]
@@ -89,7 +89,7 @@ macro_rules! algo {
         }
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn ProgramPage(addr: u32, size: u32, data: *const u8) -> u32 {
+        pub unsafe extern "C" fn ProgramPage(addr: u32, size: usize, data: *const u8) -> u32 {
             if !_IS_INIT {
                 return 1;
             }
