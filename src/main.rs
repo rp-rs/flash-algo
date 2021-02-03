@@ -4,10 +4,13 @@
 
 mod algo;
 
+use rp2040_hal::rom_data;
+
 use core::mem;
 use core::mem::MaybeUninit;
 
 use self::algo::*;
+use rp2040_hal::rom_data::flash_enter_cmd_xip;
 
 fn find_func<T>(tag: [u8; 2]) -> T {
     let tag = u16::from_le_bytes(tag);
@@ -30,23 +33,23 @@ fn find_func<T>(tag: [u8; 2]) -> T {
 }
 
 struct ROMFuncs {
-    connect_internal_flash: extern "C" fn(),
-    flash_exit_xip: extern "C" fn(),
-    flash_range_erase: extern "C" fn(addr: u32, count: u32, block_size: u32, block_cmd: u8),
-    flash_range_program: extern "C" fn(addr: u32, data: *const u8, count: u32),
-    flash_flush_cache: extern "C" fn(),
-    flash_enter_cmd_xip: extern "C" fn(),
+    connect_internal_flash: fn() -> (),
+    flash_exit_xip: fn() -> (),
+    flash_range_erase: fn(addr: u32, count: usize, block_size: u32, block_cmd: u8),
+    flash_range_program: fn(addr: u32, data: *const u8, count: usize),
+    flash_flush_cache: fn() -> (),
+    flash_enter_cmd_xip: fn() -> (),
 }
 
 impl ROMFuncs {
     fn load() -> Self {
         ROMFuncs {
-            connect_internal_flash: find_func(*b"IF"),
-            flash_exit_xip: find_func(*b"EX"),
-            flash_range_erase: find_func(*b"RE"),
-            flash_range_program: find_func(*b"RP"),
-            flash_flush_cache: find_func(*b"FC"),
-            flash_enter_cmd_xip: find_func(*b"CX"),
+            connect_internal_flash: rom_data::connect_internal_flash,
+            flash_exit_xip: rom_data::flash_exit_xip,
+            flash_range_erase: rom_data::flash_range_erase,
+            flash_range_program: rom_data::flash_range_program,
+            flash_flush_cache: rom_data::flash_flush_cache,
+            flash_enter_cmd_xip: rom_data::flash_enter_cmd_xip,
         }
     }
 }
@@ -58,7 +61,7 @@ struct RP2040Algo {
 algo!(RP2040Algo);
 
 const BLOCK_SIZE: u32 = 65536;
-const SECTOR_SIZE: u32 = 4096;
+const SECTOR_SIZE: usize = 4096;
 const PAGE_SIZE: u32 = 256;
 const BLOCK_ERASE_CMD: u8 = 0xd8;
 const FLASH_BASE: u32 = 0x1000_0000;
@@ -82,7 +85,7 @@ impl FlashAlgo for RP2040Algo {
         Ok(())
     }
 
-    fn program_page(&mut self, addr: u32, size: u32, data: *const u8) -> Result<(), ErrorCode> {
+    fn program_page(&mut self, addr: u32, size: usize, data: *const u8) -> Result<(), ErrorCode> {
         (self.funcs.flash_range_program)(addr - FLASH_BASE, data, size);
         Ok(())
     }
