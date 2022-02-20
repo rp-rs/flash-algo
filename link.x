@@ -25,12 +25,23 @@ SECTIONS {
 
         *(.sdata)
         *(.sdata.*)
-        
+
         *(.bss)
         *(.bss.*)
 
         *(.uninit)
         *(.uninit.*)
+
+        . = ALIGN(4);
+    }
+
+    /*
+     * The device description is usually in DevDscr section, but adding it to
+     * PrgData in order to satisfy tools that need this section.
+     */
+    PrgData : {
+        KEEP(*(.DevDscr))
+        KEEP(*(.DevDscr.*))
 
         . = ALIGN(4);
     }

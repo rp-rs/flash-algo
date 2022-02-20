@@ -1,6 +1,5 @@
 #![macro_use]
 
-
 use core::num::NonZeroU32;
 
 #[panic_handler]
@@ -34,7 +33,9 @@ pub trait FlashAlgo: Sized + 'static {
 #[macro_export]
 macro_rules! algo {
     ($type:ty) => {
+        #[no_mangle]
         static mut _IS_INIT: bool = false;
+        #[no_mangle]
         static mut _ALGO_INSTANCE: MaybeUninit<$type> = MaybeUninit::uninit();
 
         #[no_mangle]
