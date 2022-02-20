@@ -17,6 +17,9 @@ name = "flash-algo"
 test = false
 bench = false
 
+[features]
+device_description = []
+
 [profile.dev]
 codegen-units = 1
 debug = 2
