@@ -171,6 +171,11 @@ pub struct FlashDevice {
 
 #[cfg(feature = "device_description")]
 #[no_mangle]
+#[link_section = ".PrgData"]
+pub static dummy: u32 = 0;
+
+#[cfg(feature = "device_description")]
+#[no_mangle]
 #[link_section = ".DevDscr"]
 pub static FlashDevice: FlashDevice = FlashDevice {
     version: 1, // Version 1.01

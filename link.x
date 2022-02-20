@@ -36,10 +36,16 @@ SECTIONS {
     }
 
     /*
-     * The device description is usually in DevDscr section, but adding it to
-     * PrgData in order to satisfy tools that need this section.
+     * Adding PrgData section in order to satisfy tools that need it.
      */
     PrgData : {
+        KEEP(*(.PrgData))
+        KEEP(*(.PrgData.*))
+
+        . = ALIGN(4);
+    }
+
+    DevDscr : {
         KEEP(*(.DevDscr))
         KEEP(*(.DevDscr.*))
 
