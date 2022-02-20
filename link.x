@@ -25,12 +25,29 @@ SECTIONS {
 
         *(.sdata)
         *(.sdata.*)
-        
+
         *(.bss)
         *(.bss.*)
 
         *(.uninit)
         *(.uninit.*)
+
+        . = ALIGN(4);
+    }
+
+    /*
+     * Adding PrgData section in order to satisfy tools that need it.
+     */
+    PrgData : {
+        KEEP(*(.PrgData))
+        KEEP(*(.PrgData.*))
+
+        . = ALIGN(4);
+    }
+
+    DevDscr : {
+        KEEP(*(.DevDscr))
+        KEEP(*(.DevDscr.*))
 
         . = ALIGN(4);
     }
