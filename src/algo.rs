@@ -44,7 +44,6 @@ macro_rules! algo {
             if _IS_INIT {
                 UnInit();
             }
-            _IS_INIT = true;
             match <$type as FlashAlgo>::new(addr, clock, function) {
                 Ok(inst) => {
                     _ALGO_INSTANCE.as_mut_ptr().write(inst);
