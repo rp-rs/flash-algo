@@ -1,6 +1,7 @@
 #![macro_use]
 
 
+use core::arch::asm;
 use core::num::NonZeroU32;
 
 #[panic_handler]
