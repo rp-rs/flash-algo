@@ -3,28 +3,19 @@
 
 mod algo;
 
-use core::mem;
 use core::mem::MaybeUninit;
 
 use self::algo::*;
 
 fn find_func<T>(tag: [u8; 2]) -> T {
-    let tag = u16::from_le_bytes(tag);
-
+    let tag = u16::from_le_bytes(tag) as u32;
+    type RomTableLookupFn = unsafe extern "C" fn(table: *const u16, code: u32) -> usize;
     unsafe {
-        let mut entry = *(0x00000014 as *const u16) as *const u16;
-        loop {
-            let entry_tag = entry.read();
-            if entry_tag == 0 {
-                panic!("Func not found");
-            }
-            entry = entry.add(1);
-            let entry_addr = entry.read();
-            entry = entry.add(1);
-            if entry_tag == tag {
-                return mem::transmute_copy(&(entry_addr as u32));
-            }
-        }
+        let lookup_func = core::ptr::read(0x0000_0018 as *const u16) as usize;
+        let lookup_func: RomTableLookupFn = core::mem::transmute(lookup_func);
+        let table = core::ptr::read(0x0000_00014 as *const u16) as usize;
+        let result = lookup_func(table as *const u16, tag);
+        core::mem::transmute_copy(&result)
     }
 }
 
@@ -58,7 +49,6 @@ algo!(RP2040Algo);
 
 const BLOCK_SIZE: u32 = 65536;
 const SECTOR_SIZE: u32 = 4096;
-const PAGE_SIZE: u32 = 256;
 const BLOCK_ERASE_CMD: u8 = 0xd8;
 const FLASH_BASE: u32 = 0x1000_0000;
 
