@@ -33,6 +33,12 @@ macro_rules! algo {
         static mut _IS_INIT: bool = false;
         static mut _ALGO_INSTANCE: MaybeUninit<$type> = MaybeUninit::uninit();
 
+        /// Initialise the Flash Algorithm
+        ///
+        /// # Safety
+        ///
+        /// Will disable execution from Flash. Ensure you are running from SRAM
+        /// and do not call any flash-based based functions.
         #[no_mangle]
         #[link_section = ".entry"]
         pub unsafe extern "C" fn Init(addr: u32, clock: u32, function: u32) -> u32 {
@@ -48,16 +54,25 @@ macro_rules! algo {
                 Err(e) => e.get(),
             }
         }
+        /// Uninitialise the Flash Algorithm
         #[no_mangle]
         #[link_section = ".entry"]
-        pub unsafe extern "C" fn UnInit() -> u32 {
-            if !_IS_INIT {
-                return 1;
+        pub extern "C" fn UnInit() -> u32 {
+            unsafe {
+                if !_IS_INIT {
+                    return 1;
+                }
+                _ALGO_INSTANCE.as_mut_ptr().drop_in_place();
+                _IS_INIT = false;
             }
-            _ALGO_INSTANCE.as_mut_ptr().drop_in_place();
-            _IS_INIT = false;
             0
         }
+        /// Erase the flash chip.
+        ///
+        /// # Safety
+        ///
+        /// Will erase the flash chip. Ensure you really want to erase the
+        /// flash chip.
         #[no_mangle]
         #[link_section = ".entry"]
         pub unsafe extern "C" fn EraseChip() -> u32 {
@@ -70,6 +85,11 @@ macro_rules! algo {
                 Err(e) => e.get(),
             }
         }
+        /// Erase the a sector on the flash chip.
+        ///
+        /// # Safety
+        ///
+        /// Will erase the given sector. Pass a valid sector address.
         #[no_mangle]
         #[link_section = ".entry"]
         pub unsafe extern "C" fn EraseSector(addr: u32) -> u32 {
@@ -82,6 +102,12 @@ macro_rules! algo {
                 Err(e) => e.get(),
             }
         }
+        /// Write to a page on the flash chip.
+        ///
+        /// # Safety
+        ///
+        /// Will program the given page. Pass a valid page address, and a
+        /// valid pointer to at least `size` bytes of data.
         #[no_mangle]
         #[link_section = ".entry"]
         pub unsafe extern "C" fn ProgramPage(addr: u32, size: u32, data: *const u8) -> u32 {
