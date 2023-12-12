@@ -1,1 +1,5 @@
-nightly
+[toolchain]
+channel = "stable"
+components = [ "llvm-tools" ]
+profile = "minimal"
+targets = ["thumbv6m-none-eabi"]
