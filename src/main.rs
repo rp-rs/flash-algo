@@ -81,13 +81,8 @@ impl FlashAlgo for RP2040Algo {
     }
 
     fn erase_range(&mut self, start_addr: u32, end_addr: u32) -> Result<(), ErrorCode> {
-        let erase_size = end_addr - start_addr;
-        (self.funcs.flash_range_erase)(
-            start_addr - FLASH_BASE,
-            erase_size,
-            BLOCK_SIZE,
-            BLOCK_ERASE_CMD,
-        );
+        let size = (end_addr - start_addr) + 1;
+        (self.funcs.flash_range_erase)(start_addr - FLASH_BASE, size, BLOCK_SIZE, BLOCK_ERASE_CMD);
         Ok(())
     }
 
