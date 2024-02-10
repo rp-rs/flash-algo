@@ -23,6 +23,9 @@ pub trait FlashAlgo: Sized + 'static {
     /// Erase sector. May only be called after init() with FUNCTION_ERASE
     fn erase_sector(&mut self, addr: u32) -> Result<(), ErrorCode>;
 
+    /// Erase a range of memory. May only be called after init() with FUNCTION_ERASE
+    fn erase_range(&mut self, start_addr: u32, end_addr: u32) -> Result<(), ErrorCode>;
+
     /// Program bytes. May only be called after init() with FUNCTION_PROGRAM
     fn program_page(&mut self, addr: u32, size: u32, data: *const u8) -> Result<(), ErrorCode>;
 }
@@ -98,6 +101,25 @@ macro_rules! algo {
             }
             let this = &mut *_ALGO_INSTANCE.as_mut_ptr();
             match <$type as FlashAlgo>::erase_sector(this, addr) {
+                Ok(()) => 0,
+                Err(e) => e.get(),
+            }
+        }
+        /// Erase a range of memory on the flash chip.
+        /// Algo can use page/block erase commands to improve performance vs EraseSector
+        ///
+        /// # Safety
+        ///
+        /// Will erase all memory inside the address range.
+        /// Must pass a valid sector start and end address.
+        #[no_mangle]
+        #[link_section = ".entry"]
+        pub unsafe extern "C" fn EraseRange(start_addr: u32, end_addr: u32) -> u32 {
+            if !_IS_INIT {
+                return 1;
+            }
+            let this = &mut *_ALGO_INSTANCE.as_mut_ptr();
+            match <$type as FlashAlgo>::erase_range(this, start_addr, end_addr) {
                 Ok(()) => 0,
                 Err(e) => e.get(),
             }
