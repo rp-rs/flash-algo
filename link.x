@@ -35,6 +35,30 @@ SECTIONS {
         . = ALIGN(4);
     }
 
+     /* Section for data, specified by flashloader standard. */
+    PrgData : {
+      /*
+       * We're explicitly putting a single object here (PRGDATA_Start in main.c) as this is required by some tools.
+       * It is not used by this algorithm
+       */
+        KEEP(*(PrgData))
+
+        . = ALIGN(4);
+    }
+
+    /* Description of the flash algorithm */
+    DevDscr . : {
+        /* The device data content is only for external tools,
+         * and usually not referenced by the code.
+         * All rules have exceptions: device data is used by this flash algo.
+         *
+         * The KEEP statement ensures it's not removed by accident.
+         */
+        KEEP(*(DeviceData))
+
+        . = ALIGN(4);
+    }
+
     /DISCARD/ : {
         /* Unused exception related info that only wastes space */
         *(.ARM.exidx);
