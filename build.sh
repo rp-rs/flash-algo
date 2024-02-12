@@ -30,5 +30,4 @@ cat <<EOF
     pc_uninit: $(sym UnInit)
     pc_program_page: $(sym ProgramPage)
     pc_erase_sector: $(sym EraseSector)
-    pc_erase_all: $(sym EraseChip)
 EOF

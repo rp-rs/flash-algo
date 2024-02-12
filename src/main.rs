@@ -74,11 +74,6 @@ impl FlashAlgorithm for RP2040Algo {
         Ok(Self { funcs })
     }
 
-    fn erase_all(&mut self) -> Result<(), ErrorCode> {
-        // todo
-        Err(ErrorCode::new(0x70d0).unwrap())
-    }
-
     fn erase_sector(&mut self, addr: u32) -> Result<(), ErrorCode> {
         (self.funcs.flash_range_erase)(
             addr - FlashDevice.dev_addr,
