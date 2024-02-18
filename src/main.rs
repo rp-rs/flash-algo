@@ -1,11 +1,7 @@
 #![no_std]
 #![no_main]
 
-mod algo;
-
-use core::mem::MaybeUninit;
-
-use self::algo::*;
+use flash_algorithm::*;
 
 fn find_func<T>(tag: [u8; 2]) -> Option<T> {
     let tag = u16::from_le_bytes(tag) as u32;
@@ -53,15 +49,23 @@ struct RP2040Algo {
     funcs: ROMFuncs,
 }
 
-algo!(RP2040Algo);
+algorithm!(RP2040Algo, {
+    flash_address: 0x1000_0000,
+    flash_size: 0x0100_0000,
+    page_size: 0x100,
+    empty_value: 0xFF,
+    sectors: [{
+        size: 0x1000,
+        address: 0x10000000,
+    }]
+});
 
 const BLOCK_SIZE: u32 = 65536;
 const SECTOR_SIZE: u32 = 4096;
 const BLOCK_ERASE_CMD: u8 = 0xd8;
-const FLASH_BASE: u32 = 0x1000_0000;
 
-impl FlashAlgo for RP2040Algo {
-    fn new(_address: u32, _clock: u32, _function: u32) -> Result<Self, ErrorCode> {
+impl FlashAlgorithm for RP2040Algo {
+    fn new(_address: u32, _clock: u32, _function: Function) -> Result<Self, ErrorCode> {
         let Some(funcs) = ROMFuncs::load() else {
             return Err(ErrorCode::new(1).unwrap());
         };
@@ -76,12 +80,21 @@ impl FlashAlgo for RP2040Algo {
     }
 
     fn erase_sector(&mut self, addr: u32) -> Result<(), ErrorCode> {
-        (self.funcs.flash_range_erase)(addr - FLASH_BASE, SECTOR_SIZE, BLOCK_SIZE, BLOCK_ERASE_CMD);
+        (self.funcs.flash_range_erase)(
+            addr - FlashDevice.dev_addr,
+            SECTOR_SIZE,
+            BLOCK_SIZE,
+            BLOCK_ERASE_CMD,
+        );
         Ok(())
     }
 
-    fn program_page(&mut self, addr: u32, size: u32, data: *const u8) -> Result<(), ErrorCode> {
-        (self.funcs.flash_range_program)(addr - FLASH_BASE, data, size);
+    fn program_page(&mut self, addr: u32, data: &[u8]) -> Result<(), ErrorCode> {
+        (self.funcs.flash_range_program)(
+            addr - FlashDevice.dev_addr,
+            data.as_ptr(),
+            data.len() as u32,
+        );
         Ok(())
     }
 }

@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 cortex-m = "0.7.0"
+flash-algorithm = "0.4.0"
 
 # this lets you use `cargo fix`!
 [[bin]]
