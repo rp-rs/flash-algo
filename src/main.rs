@@ -100,3 +100,14 @@ impl Drop for RP2040Algo {
         (self.funcs.flash_enter_cmd_xip)();
     }
 }
+
+/// Some tools (eg Segger's debugger) require the PrgData section to exist in the target binary
+///
+/// They scan the flashloader binary for this symbol to determine the section location
+/// If they cannot find it, the tool exits. This variable serves no other purpose
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+#[link_section = "PrgData"]
+#[cfg(feature = "cmsis-pack-compat")]
+pub static mut PRGDATA_Start: usize = 0;

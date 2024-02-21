@@ -11,6 +11,11 @@ flash-algorithm = { version = "0.4.0", default-features = false, features = [
     "panic-handler",
 ] }
 
+[features]
+# Keep extra metadata in the final binary that probe-rs doesn't strictly need.
+# Other tools use of these datastructures: probe-rs' target-gen, pyocd, jlink
+cmsis-pack-compat = []
+
 # this lets you use `cargo fix`!
 [[bin]]
 name = "flash-algo"
