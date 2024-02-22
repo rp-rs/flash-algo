@@ -20,7 +20,7 @@ fn main() {
 fn setup_linker_script(out: &Path) {
     // rename the linker output to ensure we use the one in the
     // build output instead of the one in the project root
-    File::create(out.join("link_output.x"))
+    File::create(out.join("link_generated.x"))
         .unwrap()
         .write_all(include_bytes!("link.x"))
         .unwrap();
@@ -33,7 +33,7 @@ fn setup_linker_script(out: &Path) {
 
 #[cfg(feature = "cmsis-pack-compat")]
 fn setup_linker_script(out: &Path) {
-    File::create(out.join("link_output.x"))
+    File::create(out.join("link_generated.x"))
         .unwrap()
         .write_all(include_bytes!("link_metadata.x"))
         .unwrap();
