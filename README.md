@@ -1,6 +1,6 @@
-# RaspberryPi Pico RP2040 flash algorithm
+# RaspberryPi Pico RP2 flash algorithm
 
-This is a flash algorithm for the RP2040 chip, used in the Raspberry Pi Pico board. 
+This is a flash algorithm for the RP2040 and RP2350 chips, used in the Raspberry Pi Pico board.
 It implements the CMSIS-Pack ABI, so it's compatible with any tools that use it, including probe-rs.
 
 ## Dependencies
@@ -32,7 +32,7 @@ flash-algo$ ./build.sh
 The `algo` module contains the FlashAlgo trait, and an `algo!` macro to generate
 the glue functions for a given struct implementing it. This is generic for all chips, so feel free to reuse it!
 
-`main.rs` has the actual implementation for RP2040.
+`main.rs` has the actual implementation for RP2040 and RP2350.
 
 ## License
 
