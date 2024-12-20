@@ -139,10 +139,14 @@ struct RP2Algo {
 }
 
 algorithm!(RP2Algo, {
+    device_name: "Raspberry Pi RP2",
+    device_type: DeviceType::ExtSpi,
     flash_address: 0x1000_0000,
     flash_size: 0x0100_0000,
     page_size: 0x100,
     empty_value: 0xFF,
+    program_time_out: 500, // 500 ms
+    erase_time_out: 5000, // 5 s
     sectors: [{
         size: 0x1000,
         address: 0x10000000,

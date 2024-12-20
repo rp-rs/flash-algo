@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 cortex-m = "0.7.0"
-flash-algorithm = { version = "0.4.0", default-features = false, features = [
+flash-algorithm = { version = "0.5.0", default-features = false, features = [
     "panic-handler",
 ] }
 

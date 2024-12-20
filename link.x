@@ -25,7 +25,7 @@ SECTIONS {
 
         *(.sdata)
         *(.sdata.*)
-        
+
         *(.bss)
         *(.bss.*)
 
@@ -33,6 +33,26 @@ SECTIONS {
         *(.uninit.*)
 
         . = ALIGN(4);
+    }
+
+    /*
+     * Adding PrgData section in order to satisfy tools that need it.
+     */
+    PrgData : {
+        KEEP(*(.PrgData))
+        KEEP(*(.PrgData.*))
+
+        . = ALIGN(4);
+    }
+
+    /* Description of the flash algorithm */
+    DeviceData . : {
+        /* The device data content is only for external tools,
+         * and usually not referenced by the code.
+         *
+         * The KEEP statement ensures it's not removed by accident.
+         */
+        KEEP(*(DeviceData))
     }
 
     /DISCARD/ : {

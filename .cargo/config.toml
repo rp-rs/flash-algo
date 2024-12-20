@@ -5,7 +5,7 @@ rustflags = [
   "-C", "link-arg=-Tlink.x",
 
   # Code-size optimizations.
-  "-C", "inline-threshold=5",
+  "-Cllvm-args=--inline-threshold=5",
   "-C", "no-vectorize-loops",
   "-C", "force-frame-pointers=no",
 
