@@ -15,9 +15,10 @@ ELF=target/thumbv6m-none-eabi/release/flash-algo
 rust-objdump --disassemble $ELF > target/disassembly.s
 rust-objdump -x $ELF > target/dump.txt
 rust-nm $ELF -n > target/nm.txt
+# printf "Algo binary size: `rust-objcopy $ELF --remove-section DeviceData -O binary - | wc -c` bytes\n"
 
 function bin {
-    rust-objcopy $ELF -O binary - | base64 $BASE64_FLAGS
+    rust-objcopy $ELF --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
 }
 
 function sym {
