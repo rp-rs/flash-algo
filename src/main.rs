@@ -183,6 +183,32 @@ impl FlashAlgorithm for RP2Algo {
         );
         Ok(())
     }
+
+    fn verify(&mut self, address: u32, size: u32, data: Option<&[u8]>) -> Result<(), ErrorCode> {
+        let Some(data) = data else {
+            return Ok(());
+        };
+        (self.funcs.flash_flush_cache)();
+        (self.funcs.flash_enter_cmd_xip)();
+        let check = unsafe { core::slice::from_raw_parts(address as *const u8, size as usize) };
+        for (offset, (check, data)) in check.iter().zip(data.iter()).enumerate() {
+            if *check != *data {
+                (self.funcs.flash_exit_xip)();
+                // Return the first address that failed.
+                return ErrorCode::new(offset as u32 + address)
+                    .map(|e| Err(e))
+                    .unwrap_or(Ok(()));
+            }
+        }
+
+        (self.funcs.flash_exit_xip)();
+
+        // Return the last address in the flash range. Any other value (including `Ok(())`)
+        // is an error.
+        ErrorCode::new(address + size)
+            .map(|e| Err(e))
+            .unwrap_or(Ok(()))
+    }
 }
 
 impl Drop for RP2Algo {
