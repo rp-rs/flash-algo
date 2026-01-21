@@ -157,9 +157,21 @@ const BLOCK_SIZE: u32 = 65536;
 const SECTOR_SIZE: u32 = 4096;
 const BLOCK_ERASE_CMD: u8 = 0xd8;
 
+fn reset_core_1() {
+    const PSM_BASE: u32 = 0x4001_0000;
+    const PSM_FRCE_OFF: u32 = PSM_BASE + 0x4;
+
+    unsafe {
+        core::ptr::write_volatile(PSM_FRCE_OFF as *mut u32, 1 << 16);
+        while core::ptr::read_volatile(PSM_FRCE_OFF as *mut u32) & 1 << 16 == 0 {}
+        core::ptr::write_volatile(PSM_FRCE_OFF as *mut u32, 0);
+    }
+}
+
 impl FlashAlgorithm for RP2Algo {
     fn new(_address: u32, _clock: u32, _function: Function) -> Result<Self, ErrorCode> {
         let funcs = ROMFuncs::load()?;
+        reset_core_1();
         (funcs.connect_internal_flash)();
         (funcs.flash_exit_xip)();
         Ok(Self { funcs })
