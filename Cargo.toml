@@ -5,10 +5,15 @@ readme = "README.md"
 name = "flash-algo"
 version = "0.1.0"
 
+[features]
+default = ["verify"]
+# Implement the optional "verify" function.
+# This function is not required and is only used to improve verification speed for some tools.
+verify = ["flash-algorithm/verify"]
+
 [dependencies]
 flash-algorithm = { version = "0.7.0", default-features = false, features = [
     "panic-handler",
-    "verify",
 ] }
 
 [target.'cfg( target_arch = "arm" )'.dependencies]
