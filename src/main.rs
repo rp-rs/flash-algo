@@ -184,6 +184,7 @@ impl FlashAlgorithm for RP2Algo {
         Ok(())
     }
 
+    #[cfg(feature = "verify")]
     fn verify(&mut self, address: u32, size: u32, data: Option<&[u8]>) -> Result<(), ErrorCode> {
         let Some(data) = data else {
             return Ok(());
