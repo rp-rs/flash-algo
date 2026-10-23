@@ -9,26 +9,40 @@ else
     BASE64_FLAGS="-w0"
 fi
 
-cargo build --release
-ELF=target/thumbv6m-none-eabi/release/flash-algo
 
-rust-objdump --disassemble $ELF > target/disassembly.s
-rust-objdump -x $ELF > target/dump.txt
-rust-nm $ELF -n > target/nm.txt
+target="thumbv6m-none-eabi"
 
 function bin {
-    rust-objcopy $ELF --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
+    local elf=$1
+    rust-objcopy $elf --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
 }
 
 function sym {
-    echo $((0x$(rust-nm $ELF | grep -w $1 | cut -d ' ' -f 1) + 1))
+    local elf=$1
+    local name=$2
+    local hex
+    hex=$(rust-nm "$elf" | grep -w "$name" | cut -d ' ' -f 1 || true)
+    # if function not in elf, print missing instead of 0
+    if [[ -z "$hex" ]]; then
+        printf 'missing\n'
+        return 0
+    fi
+    # add 1 for arm to set thumb mode bit
+    local addr=$((16#$hex + 1))
+    printf '0x%x\n' "$addr"
 }
 
+cargo build --release --target $target
+ELF=target/$target/release/flash-algo
+rust-objdump --disassemble $ELF > target/$target/disassembly.s
+rust-objdump -x $ELF > target/$target/dump.txt
+rust-nm $ELF -n > target/$target/nm.txt
+
 cat <<EOF
-    instructions: $(bin)
-    pc_init: $(sym Init)
-    pc_uninit: $(sym UnInit)
-    pc_program_page: $(sym ProgramPage)
-    pc_erase_sector: $(sym EraseSector)
-    pc_verify: $(sym Verify)
+    instructions: $(bin $ELF)
+    pc_init: $(sym $ELF Init)
+    pc_uninit: $(sym $ELF UnInit)
+    pc_program_page: $(sym $ELF ProgramPage)
+    pc_erase_sector: $(sym $ELF EraseSector)
+    pc_verify: $(sym $ELF Verify)
 EOF
