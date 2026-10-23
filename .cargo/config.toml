@@ -1,5 +1,22 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
+rustflags = [
+  "-C", "link-arg=--nmagic",
+  "-C", "link-arg=-Tlink.x",
 
+  # Code-size optimizations.
+  "-Cllvm-args=--inline-threshold=5",
+  "-C", "no-vectorize-loops",
+  "-C", "force-frame-pointers=no",
+
+  # We don't know where the flash loader will be
+  # placed in memory, so we need to create
+  # position independent code (pic).
+  "-C", "relocation-model=pic",
+]
+
+# this is duplicated from the above, but in case we want different flags
+# for hazard3 builds in the future we should keep them separate
+[target.'cfg(all(target_arch = "riscv32", target_os = "none"))']
 rustflags = [
   "-C", "link-arg=--nmagic",
   "-C", "link-arg=-Tlink.x",
@@ -23,3 +40,4 @@ target = "thumbv6m-none-eabi"        # Cortex-M0 and Cortex-M0+
 # target = "thumbv8m.base-none-eabi"   # Cortex-M23
 # target = "thumbv8m.main-none-eabi"   # Cortex-M33 (no FPU)
 # target = "thumbv8m.main-none-eabihf" # Cortex-M33 (with FPU)
+# target = "riscv32imac-unknown-none-elf" # hazard3

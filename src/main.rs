@@ -3,52 +3,84 @@
 
 use flash_algorithm::*;
 
-extern "C" {
-    /// Enables the redundancy coprocessor (RCP)
-    ///
-    /// If the RCP is already initialized, `init_rcp` will skip initialization
-    /// as initializing it twice will cause a fault.
-    fn init_rcp();
+mod rp235x {
+    // Impls for RP235x Cortex-M33 cores
+    #[cfg(target_arch = "arm")]
+    mod arm {
+        /// This location in ROM holds a 16-bit truncated pointer for the ROM lookup function for
+        /// RP235x ROMs.
+        const ROM_TABLE_LOOKUP_PTR: *const u16 = 0x0000_0016 as _;
+        /// The flash-algo needs to run in secure mode so we need too look up
+        /// functions in that context
+        const RT_FLAG_FUNC_ARM_SEC: u32 = 0x0004;
+
+        extern "C" {
+            // The RCP (redundancy coprocessor) must be enabled in order to call ROM functions.
+            fn init_rcp();
+        }
+
+        // Implementation adapted from the PicoSDK's crt0.S.
+        core::arch::global_asm!(
+            r#"
+            .syntax unified
+            .cpu cortex-m33
+            .thumb
+            .global init_rcp
+            init_rcp:
+                ldr r0, =0xe0000000 + 0x0000ed88  // PPB_BASE + M33_CPACR_OFFSET
+                movs r1, 0x0000c000 // CPACR_CP7_BITS
+                str r1, [r0]
+                .byte 0x30
+                .byte 0xee
+                .byte 0x10
+                .byte 0xf7
+                bmi 2f
+                mcrr p7, #8, r0, r0, c0
+                mcrr p7, #8, r0, r0, c1
+                sev
+                2:
+                bx lr
+            "#,
+        );
+
+        pub fn rom_lookup_fn_ptr() -> usize {
+            unsafe { ROM_TABLE_LOOKUP_PTR.read() as usize }
+        }
+
+        pub const fn rom_func_lookup_mask() -> u32 {
+            RT_FLAG_FUNC_ARM_SEC
+        }
+
+        /// Do any prep required to safely call ROM functions (eg, Enable RCP)
+        pub unsafe fn prepare_for_rom_calls() {
+            init_rcp();
+        }
+    }
+
+    // Impls for RP235x hazard3 cores
+    #[cfg(target_arch = "riscv32")]
+    mod riscv {
+        /// This location in ROM holds the ROM lookup function for RISC-V
+        const ROM_TABLE_LOOKUP_PTR: *const u16 = 0x0000_7dfa as _;
+        /// ROM functions need to know they're being called from RISC-V
+        const RT_FLAG_FUNC_RISCV: u32 = 0x0001;
+
+        pub fn rom_lookup_fn_ptr() -> usize {
+            unsafe { ROM_TABLE_LOOKUP_PTR.read() as usize }
+        }
+
+        pub const fn rom_func_lookup_mask() -> u32 {
+            RT_FLAG_FUNC_RISCV
+        }
+
+        pub unsafe fn prepare_for_rom_calls() {}
+    }
+
+    #[cfg(target_arch = "arm")]
+    pub use arm::*;
+    #[cfg(target_arch = "riscv32")]
+    pub use riscv::*;
 }
-
-// Implementation adapted from the PicoSDK's crt0.S.
-core::arch::global_asm!(
-    r#"
-    .syntax unified
-    .cpu cortex-m33
-    .thumb
-    .global init_rcp
-    init_rcp:
-        // Enable the RCP.  To save space, it is assumed that no other
-        // coprocessors are enabled.
-        ldr r0, =0xe0000000 + 0x0000ed88  // PPB_BASE + M33_CPACR_OFFSET
-        movs r1, 0x0000c000 // CPACR_CP7_BITS
-        str r1, [r0]
-
-        // Check that to see if the RCP is already initialized.
-        //
-        // Since this check requires passing `r15` to `mrc` and the inline
-        // assembler will not allow this, we hard code the instruction here:
-        //     `mrc p7, #1, r15, c0, c0, #0`
-        .byte 0x30
-        .byte 0xee
-        .byte 0x10
-        .byte 0xf7
-
-        // Skip initialization if already initialized.
-        bmi 2f
-
-        // Initialize the RCP.
-        mcrr p7, #8, r0, r0, c0
-        mcrr p7, #8, r0, r0, c1
-
-        // Signal other core.
-        sev
-
-        2:
-        bx lr
-    "#,
-);
 
 unsafe fn lookup_func_rp2040(tag: u32) -> usize {
     type RomTableLookupFn = unsafe extern "C" fn(table: *const u16, code: u32) -> usize;
@@ -70,20 +102,9 @@ unsafe fn lookup_func_rp2040(tag: u32) -> usize {
 unsafe fn lookup_func_235x(tag: u32) -> usize {
     type RomTableLookupFn = unsafe extern "C" fn(code: u32, mask: u32) -> usize;
 
-    /// This location in ROM holds a 16-bit truncated pointer for the ROM lookup function for
-    /// RP235x ROMs.
-    const ROM_TABLE_LOOKUP_PTR: *const u16 = 0x0000_0016 as _;
-
-    /// The flash-algo needs to run in secure mode so we need too look up
-    /// functions in that context
-    const RT_FLAG_FUNC_ARM_SEC: u32 = 0x0004;
-
-    // The RCP (redundancy coprocessor) must be enabled in order to call ROM functions.
-    init_rcp();
-
-    let lookup_func = ROM_TABLE_LOOKUP_PTR.read() as usize;
-    let lookup_func: RomTableLookupFn = core::mem::transmute(lookup_func);
-    lookup_func(tag, RT_FLAG_FUNC_ARM_SEC)
+    rp235x::prepare_for_rom_calls();
+    let lookup_func: RomTableLookupFn = core::mem::transmute(rp235x::rom_lookup_fn_ptr());
+    lookup_func(tag, rp235x::rom_func_lookup_mask())
 }
 
 fn find_func<T>(tag: [u8; 2]) -> Result<T, ErrorCode> {
