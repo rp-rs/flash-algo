@@ -60,5 +60,7 @@ SECTIONS {
         *(.ARM.exidx);
         *(.ARM.exidx.*);
         *(.ARM.extab.*);
+        *(.eh_frame);
+        *(.eh_frame.*);
     }
 }
