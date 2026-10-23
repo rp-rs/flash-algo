@@ -17,7 +17,7 @@ rust-objdump -x $ELF > target/dump.txt
 rust-nm $ELF -n > target/nm.txt
 
 function bin {
-    rust-objcopy $ELF -O binary - | base64 $BASE64_FLAGS
+    rust-objcopy $ELF --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
 }
 
 function sym {
