@@ -10,7 +10,10 @@ else
 fi
 
 
-target="thumbv6m-none-eabi"
+targets=(
+    "thumbv6m-none-eabi"
+    "riscv32imac-unknown-none-elf"
+)
 
 function bin {
     local elf=$1
@@ -27,22 +30,28 @@ function sym {
         printf 'missing\n'
         return 0
     fi
+    local addr=$((16#$hex))
     # add 1 for arm to set thumb mode bit
-    local addr=$((16#$hex + 1))
+    if ! rust-objdump -f "$elf" | grep -q 'littleriscv'; then
+        addr=$((addr + 1))
+    fi
     printf '0x%x\n' "$addr"
 }
 
-cargo build --release --target $target
-ELF=target/$target/release/flash-algo
-rust-objdump --disassemble $ELF > target/$target/disassembly.s
-rust-objdump -x $ELF > target/$target/dump.txt
-rust-nm $ELF -n > target/$target/nm.txt
+for target in "${targets[@]}"; do
+    cargo build --release --target $target
+    ELF=target/$target/release/flash-algo
+    rust-objdump --disassemble $ELF > target/$target/disassembly.s
+    rust-objdump -x $ELF > target/$target/dump.txt
+    rust-nm $ELF -n > target/$target/nm.txt
 
-cat <<EOF
-    instructions: $(bin $ELF)
-    pc_init: $(sym $ELF Init)
-    pc_uninit: $(sym $ELF UnInit)
-    pc_program_page: $(sym $ELF ProgramPage)
-    pc_erase_sector: $(sym $ELF EraseSector)
-    pc_verify: $(sym $ELF Verify)
+    cat <<EOF
+Algo for $target:
+        instructions: $(bin $ELF)
+        pc_init: $(sym $ELF Init)
+        pc_uninit: $(sym $ELF UnInit)
+        pc_program_page: $(sym $ELF ProgramPage)
+        pc_erase_sector: $(sym $ELF EraseSector)
+        pc_verify: $(sym $ELF Verify)
 EOF
+done
