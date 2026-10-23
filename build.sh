@@ -20,7 +20,15 @@ function bin {
 function sym {
     local elf=$1
     local name=$2
-    local addr=$((0x$(rust-nm $elf | grep -w $name | cut -d ' ' -f 1) + 1))
+    local hex
+    hex=$(rust-nm "$elf" | grep -w "$name" | cut -d ' ' -f 1 || true)
+    # if function not in elf, print missing instead of 0
+    if [[ -z "$hex" ]]; then
+        printf 'missing\n'
+        return 0
+    fi
+    # add 1 for arm to set thumb mode bit
+    local addr=$((16#$hex + 1))
     printf '0x%x\n' "$addr"
 }
 
