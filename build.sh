@@ -13,11 +13,15 @@ fi
 target="thumbv6m-none-eabi"
 
 function bin {
-    rust-objcopy $1 --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
+    local elf=$1
+    rust-objcopy $elf --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
 }
 
 function sym {
-    echo $((0x$(rust-nm $1 | grep -w $2 | cut -d ' ' -f 1) + 1))
+    local elf=$1
+    local name=$2
+    local addr=$((0x$(rust-nm $elf | grep -w $name | cut -d ' ' -f 1) + 1))
+    printf '0x%x\n' "$addr"
 }
 
 cargo build --release --target $target
