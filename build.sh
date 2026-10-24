@@ -2,33 +2,12 @@
 
 set -euo pipefail
 
-# macOS base64 doesn't take -w argument and defaults to a single line.
-if [[ $(uname) = "Darwin" ]]; then
-    BASE64_FLAGS=""
-else
-    BASE64_FLAGS="-w0"
-fi
+cd "$(dirname "$0")"
 
-cargo build --release
-ELF=target/thumbv6m-none-eabi/release/flash-algo
+cargo build --release -p flash-algo --target thumbv6m-none-eabi
+cargo build --release -p flash-algo --target thumbv8m.main-none-eabi
+cargo build --release -p flash-algo --target riscv32imac-unknown-none-elf
 
-rust-objdump --disassemble $ELF > target/disassembly.s
-rust-objdump -x $ELF > target/dump.txt
-rust-nm $ELF -n > target/nm.txt
-
-function bin {
-    rust-objcopy $ELF --remove-section DeviceData -O binary - | base64 $BASE64_FLAGS
-}
-
-function sym {
-    echo $((0x$(rust-nm $ELF | grep -w $1 | cut -d ' ' -f 1) + 1))
-}
-
-cat <<EOF
-    instructions: $(bin)
-    pc_init: $(sym Init)
-    pc_uninit: $(sym UnInit)
-    pc_program_page: $(sym ProgramPage)
-    pc_erase_sector: $(sym EraseSector)
-    pc_verify: $(sym Verify)
-EOF
+target-gen elf -n algo -u target/thumbv6m-none-eabi/release/flash-algo RP2040.yaml
+target-gen elf -n algo -u target/thumbv8m.main-none-eabi/release/flash-algo RP235x.yaml
+target-gen elf -n algo_riscv -u target/riscv32imac-unknown-none-elf/release/flash-algo RP235x.yaml

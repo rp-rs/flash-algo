@@ -17,6 +17,7 @@ jobs:
     - name: Install Dependencies
       run: |
         cargo install cargo-binutils
+        cargo install --git https://github.com/probe-rs/probe-rs target-gen --rev 7ff6ee913c0e78b9752c062760ee8dce021a3a01
     - name: Build
       run: |
         ./build.sh
