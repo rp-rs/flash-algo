@@ -54,3 +54,6 @@ debug = false
 debug-assertions = false
 opt-level = 0
 overflow-checks = false
+
+[build-dependencies]
+arm-targets = "0.4.3"

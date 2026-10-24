@@ -14,6 +14,13 @@ mod rp235x {
         /// functions in that context
         const RT_FLAG_FUNC_ARM_SEC: u32 = 0x0004;
 
+        // Define a dummy version of init_rcp() only if we're a cortex-m0.
+        // This means we will get a build error if not(cortex-m0 or cortex-m33), which is a Good Thing (I think).
+        #[no_mangle]
+        #[cfg(arm_architecture = "v6-m")]
+        extern "C" fn init_rcp() {}
+
+        #[cfg(arm_architecture = "v8-m.main")]
         extern "C" {
             /// Enables the redundancy coprocessor (RCP)
             ///
@@ -23,6 +30,7 @@ mod rp235x {
         }
 
         // Implementation adapted from the PicoSDK's crt0.S.
+        #[cfg(arm_architecture = "v8-m.main")]
         core::arch::global_asm!(
             r#"
             .syntax unified
