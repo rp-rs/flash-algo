@@ -1,0 +1,100 @@
+name: RP235x
+manufacturer:
+  id: 0x3b
+  cc: 0x4
+variants:
+- name: RP235x
+  part: 1225
+  cores:
+  - name: core0
+    type: armv8m
+    core_access_options: !Arm
+      ap: !v2 0x2000
+  - name: core1
+    type: armv8m
+    core_access_options: !Arm
+      ap: !v2 0x4000
+  memory_map:
+  - !Nvm
+    range:
+      start: 0x10000000
+      end: 0x14000000
+    cores:
+    - core0
+    - core1
+    access:
+      boot: true
+  - !Ram
+    range:
+      start: 0x20000000
+      end: 0x20082000
+    cores:
+    - core0
+    - core1
+  flash_algorithms:
+  - algo
+- name: RP235x_riscv
+  part: 1225
+  cores:
+  - name: rv0
+    type: riscv
+    core_access_options: !Riscv
+      hart_id: 0
+      mem_ap: !v2 0xa000
+  - name: rv1
+    type: riscv
+    core_access_options: !Riscv
+      hart_id: 1
+      mem_ap: !v2 0xa000
+  memory_map:
+  - !Nvm
+    range:
+      start: 0x10000000
+      end: 0x14000000
+    cores:
+    - rv0
+    - rv1
+    access:
+      boot: true
+  - !Ram
+    range:
+      start: 0x20000000
+      end: 0x20082000
+    cores:
+    - rv0
+    - rv1
+  flash_algorithms:
+  - algo_riscv
+flash_algorithms:
+- name: algo
+  description: flash algo for rp235x arm
+  default: true
+  flash_properties:
+    address_range:
+      start: 0x10000000
+      end: 0x11000000
+    page_size: 0x100
+    erased_byte_value: 0xff
+    program_page_timeout: 500
+    erase_sector_timeout: 5000
+    sectors:
+    - size: 0x1000
+      address: 0x10000000
+  cores:
+  - core0
+- name: algo_riscv
+  description: flash algo for rp235x riscv
+  default: true
+  flash_properties:
+    address_range:
+      start: 0x10000000
+      end: 0x11000000
+    page_size: 0x100
+    erased_byte_value: 0xff
+    program_page_timeout: 500
+    erase_sector_timeout: 5000
+    sectors:
+    - size: 0x1000
+      address: 0x10000000
+  cores:
+  - core0
