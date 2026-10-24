@@ -26,6 +26,7 @@ mod rp235x {
             .cpu cortex-m33
             .thumb
             .global init_rcp
+            .type init_rcp, %function
             init_rcp:
                 ldr r0, =0xe0000000 + 0x0000ed88  // PPB_BASE + M33_CPACR_OFFSET
                 movs r1, 0x0000c000 // CPACR_CP7_BITS
