@@ -1,0 +1,128 @@
+name: RP2040
+manufacturer:
+  id: 0x13
+  cc: 0x9
+variants:
+- name: RP2040
+  cores:
+  - name: core0
+    type: armv6m
+    core_access_options: !Arm
+      ap: !v1 0
+      targetsel: 0x1002927
+  - name: core1
+    type: armv6m
+    core_access_options: !Arm
+      ap: !v1 0
+      targetsel: 0x11002927
+  memory_map:
+  - !Nvm
+    range:
+      start: 0x10000000
+      end: 0x18000000
+    cores:
+    - core0
+    - core1
+    access:
+      boot: true
+  - !Ram
+    range:
+      start: 0x20000000
+      end: 0x20042000
+    cores:
+    - core0
+    - core1
+  - !Ram
+    range:
+      start: 0x21000000
+      end: 0x21010000
+    cores:
+    - core0
+    - core1
+  - !Ram
+    range:
+      start: 0x21010000
+      end: 0x21020000
+    cores:
+    - core0
+    - core1
+  - !Ram
+    range:
+      start: 0x21020000
+      end: 0x21030000
+    cores:
+    - core0
+    - core1
+  - !Ram
+    range:
+      start: 0x21030000
+      end: 0x21040000
+    cores:
+    - core0
+    - core1
+  flash_algorithms:
+  - algo
+- name: RP2040_SELFDEBUG
+  cores:
+  - name: core0
+    type: armv6m
+    core_access_options: !Arm
+      ap: !v1 0
+  memory_map:
+  - !Nvm
+    range:
+      start: 0x10000000
+      end: 0x18000000
+    cores:
+    - core0
+    access:
+      boot: true
+  - !Ram
+    range:
+      start: 0x20000000
+      end: 0x20042000
+    cores:
+    - core0
+  - !Ram
+    range:
+      start: 0x21000000
+      end: 0x21010000
+    cores:
+    - core0
+  - !Ram
+    range:
+      start: 0x21010000
+      end: 0x21020000
+    cores:
+    - core0
+  - !Ram
+    range:
+      start: 0x21020000
+      end: 0x21030000
+    cores:
+    - core0
+  - !Ram
+    range:
+      start: 0x21030000
+      end: 0x21040000
+    cores:
+    - core0
+  flash_algorithms:
+  - algo
+flash_algorithms:
+- name: algo
+  description: algo
+  default: true
+  flash_properties:
+    address_range:
+      start: 0x10000000
+      end: 0x11000000
+    page_size: 0x100
+    erased_byte_value: 0xff
+    program_page_timeout: 500
+    erase_sector_timeout: 5000
+    sectors:
+    - size: 0x1000
+      address: 0x10000000
+  cores:
+  - core0
