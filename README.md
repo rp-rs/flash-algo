@@ -15,17 +15,7 @@ The `rust-toolchain` file will get you the targets and components you need.
 
 ## Building
 
-Just run `build.sh`. It spits out the flash algo in the probe-rs YAML format:
-
-```console
-flash-algo$ ./build.sh 
-    instructions: sLUUIACIGUoBRguI...wRwAgcEc=
-    pc_init: 0x00000000
-    pc_uninit: 0x0000007c
-    pc_program_page: 0x00000088
-    pc_erase_sector: 0x00000084
-    pc_erase_all: 0x00000080
-```
+Run `build.sh`. It updates RP2040.yaml and RP235x.yaml (probe-rs target description files.)
 
 ## Hacking
 
