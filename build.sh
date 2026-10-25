@@ -12,6 +12,7 @@ fi
 
 targets=(
     "thumbv6m-none-eabi"
+    "thumbv8m.main-none-eabi"
     "riscv32imac-unknown-none-elf"
 )
 
